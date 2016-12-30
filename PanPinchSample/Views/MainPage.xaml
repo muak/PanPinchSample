@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+		xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+		xmlns:prism="clr-namespace:Prism.Mvvm;assembly=Prism.Forms" 
+		prism:ViewModelLocator.AutowireViewModel="True" 
+		x:Class="PanPinchSample.Views.MainPage" Title="切り取るサイズと位置の調整"
+		BackgroundColor="{DynamicResource AppBackground}" 
+		>
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			
+			<Style x:Key="LabelBase" TargetType="Label" >
+				<Setter Property="TextColor" Value="{DynamicResource BaseTextColor}" />
+			</Style>
+			<Style x:Key="NormalLabel" TargetType="Label" BasedOn="{StaticResource LabelBase}">
+				<Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+			</Style>
+			<Style x:Key="LargeLabel" TargetType="Label" BasedOn="{StaticResource LabelBase}">
+				<Setter Property="FontSize" Value="{DynamicResource ObjectFontSize}" />
+			</Style>
+			<Style x:Key="ObjectLabel" TargetType="Label" BasedOn="{StaticResource LargeLabel}">
+				<Setter Property="TextColor" Value="{DynamicResource ObjectTextColor}" />
+				<Setter Property="BackgroundColor" Value="{DynamicResource MainColor}" />
+				<Setter Property="VerticalTextAlignment" Value="Center" />
+				<Setter Property="HorizontalTextAlignment" Value="Center" />
+				<Setter Property="HeightRequest" Value="50" />
+				<Setter Property="Margin" Value="10,0,10,20" />
+			</Style>
+			<Style TargetType="Button">
+				<Setter Property="FontSize" Value="{DynamicResource ObjectFontSize}" />
+				<Setter Property="TextColor" Value="{DynamicResource ObjectTextColor}" />
+				<Setter Property="BackgroundColor" Value="{DynamicResource MainColor}" />
+				<Setter Property="HeightRequest">
+					<Setter.Value>
+						<OnPlatform x:TypeArguments="x:Double" iOS="50" Android="70" />
+					</Setter.Value>
+				</Setter>
+				<Setter Property="Margin" Value="10,0,10,0" />
+			</Style>
+
+		</ResourceDictionary>
+	</ContentPage.Resources>
+	
+	<ContentPage.ToolbarItems>
+  		<ToolbarItem  Priority="1" Command="{Binding AlterThemeCommand}" Text="切替" />
+  	</ContentPage.ToolbarItems>
+	
+	<StackLayout Spacing="10" Margin="10" IsClippedToBounds="true">
+		<AbsoluteLayout VerticalOptions="FillAndExpand" BackgroundColor="Transparent" x:Name="parentLayout" >
+			<Image Source="{Binding BackImage}" AbsoluteLayout.LayoutBounds="0,0,AutoSize,AutoSize" Opacity="0.2" x:Name="backImage" />
+			<AbsoluteLayout AbsoluteLayout.LayoutBounds="{Binding CropRect,Mode=TwoWay}"  VerticalOptions="Start" HorizontalOptions="Center" IsClippedToBounds="true" x:Name="clipRealm">
+				<Image Source="{Binding ImageSrc}" AbsoluteLayout.LayoutBounds="0,0,100,100"  x:Name="foreImage" />
+			</AbsoluteLayout>
+		</AbsoluteLayout>
+
+		<Button Text="確定" VerticalOptions="End" Command="{Binding CropCommand}" />
+		<Label VerticalOptions="End" HorizontalTextAlignment="Center" Text="(c)Steve Wilson"  />
+	</StackLayout>
+</ContentPage>
