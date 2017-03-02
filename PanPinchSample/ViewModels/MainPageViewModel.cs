@@ -7,6 +7,8 @@ using Xamarin.Forms;
 using System.Net.Http;
 using Prism.Services;
 using System.IO;
+using Plugin.ImageEdit;
+using System.Threading.Tasks;
 
 namespace PanPinchSample.ViewModels
 {
@@ -31,11 +33,39 @@ namespace PanPinchSample.ViewModels
             set { SetProperty(ref _CropRect, value); }
         }
 
-        private IPageDialogService _pageDialog;
+		private Rectangle _ParentRect;
+		public Rectangle ParentRect {
+			get { return _ParentRect; }
+			set { SetProperty(ref _ParentRect, value); }
+		}
+
+		private double _Degree;
+		public double Degree {
+			get { return _Degree; }
+			set { SetProperty(ref _Degree, value); }
+		}
+
+		private bool _ResultVisible;
+		public bool ResultVisible {
+			get { return _ResultVisible; }
+			set { SetProperty(ref _ResultVisible, value); }
+		}
+
+		private ImageSource _ResultImage;
+		public ImageSource ResultImage {
+			get { return _ResultImage; }
+			set { SetProperty(ref _ResultImage, value); }
+		}
+
+		private IPageDialogService _pageDialog;
+		private byte[] _orgImage;
 
         public MainPageViewModel(IPageDialogService pageDlg)
         {
             _pageDialog = pageDlg;
+			ResultVisible = false;
+			Degree = 90;
+			CropRect = new Rectangle(0, 0, 0, 0);
         }
 
 
@@ -61,11 +91,53 @@ namespace PanPinchSample.ViewModels
         private DelegateCommand _CropCommand;
         public DelegateCommand CropCommand {
             get {
-                return _CropCommand = _CropCommand ?? new DelegateCommand(async () => {
-                    await _pageDialog.DisplayAlertAsync("切り取る範囲（相対値）", $"X:{CropRect.X:0.00} Y:{CropRect.Y:0.00}\nWidth:{CropRect.Width:0.00} Height:{CropRect.Height:0.00}", "OK");
-                });
+				return _CropCommand = _CropCommand ?? new DelegateCommand(EditImage);
             }
         }
+
+		private DelegateCommand _ResultCloseCommand;
+		public DelegateCommand ResultCloseCommand {
+			get { return _ResultCloseCommand = _ResultCloseCommand ?? new DelegateCommand(() => {
+				ResultVisible = false;
+				ResultImage = null;
+			}); }
+		}
+
+		private async void EditImage()
+		{
+			var degree = (float)Math.Round(Degree);
+
+			var ret = await _pageDialog.DisplayAlertAsync(
+				"Crop Range(relative) and Rotate", $"X:{CropRect.X:0.00} Y:{CropRect.Y:0.00}\nWidth:{CropRect.Width:0.00} Height:{CropRect.Height:0.00}\nRotate:{degree}", "OK","Cancel");
+
+			if (!ret) {
+				return;
+			}
+
+			using (var image = await CrossImageEdit.Current.CreateImageAsync(_orgImage)) {
+				var w = image.Width;
+				var h = image.Height;
+
+				var cropX = (int)(CropRect.X * w);
+				var cropY = (int)(CropRect.Y * h);
+				var cropW = (int)(CropRect.Width * w);
+				var cropH = (int)(CropRect.Height * h);
+
+				var resizeW = 320;
+
+				var croped = await Task.Run(
+					() => image.Crop(cropX, cropY, cropW, cropH)
+						.Rotate(degree)
+						.Resize(resizeW, 0)
+						.ToJpeg()
+				);
+
+				ResultImage = ImageSource.FromStream(() => new MemoryStream(croped));
+				ResultVisible = true;
+
+			}
+
+		}
 
         public void OnNavigatedFrom(NavigationParameters parameters)
         {
@@ -79,12 +151,11 @@ namespace PanPinchSample.ViewModels
 
         public async void OnNavigatingTo(NavigationParameters parameters)
         {
-            CropRect = new Rectangle(0, 0, 100, 100);
+			var httpClient = new HttpClient();
+            _orgImage = await httpClient.GetByteArrayAsync("http://free-photos-ls02.gatag.net/images/lgf01a201309171000.jpg");
 
-            var httpClient = new HttpClient();
-            var stream = await httpClient.GetByteArrayAsync("http://free-photos-ls02.gatag.net/images/lgf01a201309171000.jpg");
-            ImageSrc = ImageSource.FromStream(() => new MemoryStream(stream));
-            BackImage = ImageSource.FromStream(() => new MemoryStream(stream));
+            ImageSrc = ImageSource.FromStream(() => new MemoryStream(_orgImage));
+            BackImage = ImageSource.FromStream(() => new MemoryStream(_orgImage));
         }
     }
 }

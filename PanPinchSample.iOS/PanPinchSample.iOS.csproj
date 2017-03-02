@@ -132,6 +132,12 @@
     <Reference Include="System.Reactive.PlatformServices">
       <HintPath>..\packages\System.Reactive.PlatformServices.3.1.1\lib\netstandard1.3\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
+    <Reference Include="Plugin.ImageEdit.Abstractions">
+      <HintPath>..\packages\Xamarin.Plugin.ImageEdit.0.0.1-pre\lib\Xamarin.iOS10\Plugin.ImageEdit.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.ImageEdit">
+      <HintPath>..\packages\Xamarin.Plugin.ImageEdit.0.0.1-pre\lib\Xamarin.iOS10\Plugin.ImageEdit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ThemeSample\ThemeSample.csproj">

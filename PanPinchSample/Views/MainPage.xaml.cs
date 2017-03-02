@@ -14,6 +14,20 @@ namespace PanPinchSample.Views
 {
     public partial class MainPage : ContentPage, IDestructible
     {
+		public static BindableProperty CropRectProperty =
+			BindableProperty.Create(
+				nameof(CropRect),
+				typeof(Rectangle),
+				typeof(MainPage),
+				default(Rectangle),
+				defaultBindingMode: BindingMode.TwoWay
+			);
+
+		public Rectangle CropRect {
+			get { return (Rectangle)GetValue(CropRectProperty); }
+			set { SetValue(CropRectProperty, value); }
+		}
+
         private PanGestureRecognizer _pan;
         private PinchGestureRecognizer _pinch;
         private CompositeDisposable _disposable = new CompositeDisposable();
@@ -95,6 +109,8 @@ namespace PanPinchSample.Views
                 AbsoluteLayout.SetLayoutBounds(clipRealm, scaledRect);
                 AbsoluteLayout.SetLayoutBounds(foreImage, rectImage);
 
+				CropRect = new Rectangle(clipRealm.X / backImage.Width, clipRealm.Y / backImage.Height, clipRealm.Width / backImage.Width, clipRealm.Height / backImage.Height);
+
             });
 
             _disposable.Add(dragSub);
@@ -163,6 +179,9 @@ namespace PanPinchSample.Views
                 //AbsoluteLayoutのパラメータに反映
                 AbsoluteLayout.SetLayoutBounds(clipRealm, rectClip);
                 AbsoluteLayout.SetLayoutBounds(foreImage, rectImage);
+
+				CropRect = new Rectangle(clipRealm.X / backImage.Width, clipRealm.Y / backImage.Height, clipRealm.Width / backImage.Width, clipRealm.Height / backImage.Height);
+
             });
 
             _disposable.Add(dragSub);

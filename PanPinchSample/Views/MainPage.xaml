@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
 		xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+		xmlns:local="clr-namespace:PanPinchSample.Views;assembly=PanPinchSample"
 		xmlns:prism="clr-namespace:Prism.Mvvm;assembly=Prism.Forms" 
 		prism:ViewModelLocator.AutowireViewModel="True" 
-		x:Class="PanPinchSample.Views.MainPage" Title="切り取るサイズと位置の調整"
+		x:Class="PanPinchSample.Views.MainPage" Title="Crop And Rotate"
 		BackgroundColor="{DynamicResource AppBackground}" 
+		local:MainPage.CropRect="{Binding CropRect}"
 		>
 	<ContentPage.Resources>
 		<ResourceDictionary>
@@ -42,18 +44,33 @@
 	</ContentPage.Resources>
 	
 	<ContentPage.ToolbarItems>
-  		<ToolbarItem  Priority="1" Command="{Binding AlterThemeCommand}" Text="切替" />
+  		<ToolbarItem  Priority="1" Command="{Binding AlterThemeCommand}" Text="" />
   	</ContentPage.ToolbarItems>
 	
-	<StackLayout Spacing="10" Margin="10" IsClippedToBounds="true">
-		<AbsoluteLayout VerticalOptions="FillAndExpand" BackgroundColor="Transparent" x:Name="parentLayout" >
+	<AbsoluteLayout Margin="10">
+		
+		<AbsoluteLayout 
+			AbsoluteLayout.LayoutFlags="All" AbsoluteLayout.LayoutBounds="0,0,1,1"
+			BackgroundColor="Transparent" x:Name="parentLayout" >
 			<Image Source="{Binding BackImage}" AbsoluteLayout.LayoutBounds="0,0,AutoSize,AutoSize" Opacity="0.2" x:Name="backImage" />
-			<AbsoluteLayout AbsoluteLayout.LayoutBounds="{Binding CropRect,Mode=TwoWay}"  VerticalOptions="Start" HorizontalOptions="Center" IsClippedToBounds="true" x:Name="clipRealm">
+			<AbsoluteLayout AbsoluteLayout.LayoutBounds="0,0,100,100"  VerticalOptions="Start" HorizontalOptions="Center" IsClippedToBounds="true" x:Name="clipRealm">
 				<Image Source="{Binding ImageSrc}" AbsoluteLayout.LayoutBounds="0,0,100,100"  x:Name="foreImage" />
 			</AbsoluteLayout>
 		</AbsoluteLayout>
+		
+		<StackLayout AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional" AbsoluteLayout.LayoutBounds="0,1,1,AutoSize">
+			<Slider Maximum="359.0" Minimum="0.0" Value="{Binding Degree,Mode=TwoWay}" x:Name="slider"  />
+			<Label Text="{Binding Path=Value,Source={x:Reference slider},StringFormat='{0:0}'}" HorizontalTextAlignment="Center" />
+			<Button Text="OK" VerticalOptions="End" Command="{Binding CropCommand}" />
+			<Label VerticalOptions="End" HorizontalTextAlignment="Center" Text="(c)Steve Wilson"  />
+		</StackLayout>
 
-		<Button Text="確定" VerticalOptions="End" Command="{Binding CropCommand}" />
-		<Label VerticalOptions="End" HorizontalTextAlignment="Center" Text="(c)Steve Wilson"  />
-	</StackLayout>
+		<AbsoluteLayout BackgroundColor="#DD000000" AbsoluteLayout.LayoutFlags="All" AbsoluteLayout.LayoutBounds="0,0,1,1" IsVisible="{Binding ResultVisible}">
+			<Image Source="{Binding ResultImage}" Aspect="AspectFit" AbsoluteLayout.LayoutFlags="PositionProportional" 
+				AbsoluteLayout.LayoutBounds="0.5,0.4,AutoSize,AutoSize" />
+			<Button Text="Close" Command="{Binding ResultCloseCommand}" BackgroundColor="White" TextColor="Black" FontSize="12"
+				AbsoluteLayout.LayoutFlags="PositionProportional" AbsoluteLayout.LayoutBounds="0.5,0.95,AutoSize,AutoSize" />
+		</AbsoluteLayout>
+
+	</AbsoluteLayout>
 </ContentPage>

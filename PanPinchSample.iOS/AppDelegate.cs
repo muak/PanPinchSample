@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using Foundation;
 using Microsoft.Practices.Unity;
-using Prism;
 using Prism.Unity;
 using UIKit;
 
 namespace PanPinchSample.iOS
 {
-    // The UIApplicationDelegate for the application. This class is responsible for launching the 
-    // User Interface of the application, as well as listening (and optionally responding) to 
-    // application events from iOS.
-    [Register("AppDelegate")]
+	// The UIApplicationDelegate for the application. This class is responsible for launching the 
+	// User Interface of the application, as well as listening (and optionally responding) to 
+	// application events from iOS.
+	[Register("AppDelegate")]
     public partial class AppDelegate : global::Xamarin.Forms.Platform.iOS.FormsApplicationDelegate
     {
         //
@@ -27,6 +22,8 @@ namespace PanPinchSample.iOS
         {
             global::Xamarin.Forms.Forms.Init();
 
+			//ImageEditor.Init();
+
             LoadApplication(new App(new iOSInitializer()));
 
             return base.FinishedLaunching(app, options);
@@ -37,7 +34,7 @@ namespace PanPinchSample.iOS
     {
         public void RegisterTypes(IUnityContainer container)
         {
-
+			//container.RegisterType<IImageEditor,ImageEditor>();
         }
     }
 }
