@@ -9,6 +9,7 @@ using Prism.Services;
 using System.IO;
 using Plugin.ImageEdit;
 using System.Threading.Tasks;
+using Plugin.ImageEdit.Abstractions;
 
 namespace PanPinchSample.ViewModels
 {
@@ -33,39 +34,41 @@ namespace PanPinchSample.ViewModels
             set { SetProperty(ref _CropRect, value); }
         }
 
-		private Rectangle _ParentRect;
-		public Rectangle ParentRect {
-			get { return _ParentRect; }
-			set { SetProperty(ref _ParentRect, value); }
-		}
+        private Rectangle _ParentRect;
+        public Rectangle ParentRect {
+            get { return _ParentRect; }
+            set { SetProperty(ref _ParentRect, value); }
+        }
 
-		private double _Degree;
-		public double Degree {
-			get { return _Degree; }
-			set { SetProperty(ref _Degree, value); }
-		}
+        private double _Degree;
+        public double Degree {
+            get { return _Degree; }
+            set { SetProperty(ref _Degree, value); }
+        }
 
-		private bool _ResultVisible;
-		public bool ResultVisible {
-			get { return _ResultVisible; }
-			set { SetProperty(ref _ResultVisible, value); }
-		}
+        private bool _ResultVisible;
+        public bool ResultVisible {
+            get { return _ResultVisible; }
+            set { SetProperty(ref _ResultVisible, value); }
+        }
 
-		private ImageSource _ResultImage;
-		public ImageSource ResultImage {
-			get { return _ResultImage; }
-			set { SetProperty(ref _ResultImage, value); }
-		}
+        private ImageSource _ResultImage;
+        public ImageSource ResultImage {
+            get { return _ResultImage; }
+            set { SetProperty(ref _ResultImage, value); }
+        }
 
-		private IPageDialogService _pageDialog;
-		private byte[] _orgImage;
+        private IPageDialogService _pageDialog;
+        private IImageEdit _imageEdit;
+        private byte[] _orgImage;
 
-        public MainPageViewModel(IPageDialogService pageDlg)
+        public MainPageViewModel(IPageDialogService pageDlg, IImageEdit imageEdit)
         {
             _pageDialog = pageDlg;
-			ResultVisible = false;
-			Degree = 90;
-			CropRect = new Rectangle(0, 0, 0, 0);
+            _imageEdit = imageEdit;
+            ResultVisible = false;
+            Degree = 90;
+            CropRect = new Rectangle(0, 0, 0, 0);
         }
 
 
@@ -88,56 +91,67 @@ namespace PanPinchSample.ViewModels
             }
         }
 
-        private DelegateCommand _CropCommand;
-        public DelegateCommand CropCommand {
+        private DelegateCommand _RotateCommand;
+        public DelegateCommand RotateCommand {
             get {
-				return _CropCommand = _CropCommand ?? new DelegateCommand(EditImage);
+                return _RotateCommand = _RotateCommand ?? new DelegateCommand(() => {
+                    Degree = 90;
+                });
             }
         }
 
-		private DelegateCommand _ResultCloseCommand;
-		public DelegateCommand ResultCloseCommand {
-			get { return _ResultCloseCommand = _ResultCloseCommand ?? new DelegateCommand(() => {
-				ResultVisible = false;
-				ResultImage = null;
-			}); }
-		}
+        private DelegateCommand _CropCommand;
+        public DelegateCommand CropCommand {
+            get {
+                return _CropCommand = _CropCommand ?? new DelegateCommand(EditImage);
+            }
+        }
 
-		private async void EditImage()
-		{
-			var degree = (float)Math.Round(Degree);
+        private DelegateCommand _ResultCloseCommand;
+        public DelegateCommand ResultCloseCommand {
+            get {
+                return _ResultCloseCommand = _ResultCloseCommand ?? new DelegateCommand(() => {
+                    ResultVisible = false;
+                    ResultImage = null;
+                });
+            }
+        }
 
-			var ret = await _pageDialog.DisplayAlertAsync(
-				"Crop Range(relative) and Rotate", $"X:{CropRect.X:0.00} Y:{CropRect.Y:0.00}\nWidth:{CropRect.Width:0.00} Height:{CropRect.Height:0.00}\nRotate:{degree}", "OK","Cancel");
+        private async void EditImage()
+        {
+            var degree = (float)Math.Round(Degree);
 
-			if (!ret) {
-				return;
-			}
+            var ret = await _pageDialog.DisplayAlertAsync(
+                "Crop Range(relative) and Rotate", $"X:{CropRect.X:0.00} Y:{CropRect.Y:0.00}\nWidth:{CropRect.Width:0.00} Height:{CropRect.Height:0.00}\nRotate:{degree}", "OK", "Cancel");
 
-			using (var image = await CrossImageEdit.Current.CreateImageAsync(_orgImage)) {
-				var w = image.Width;
-				var h = image.Height;
+            if (!ret) {
+                return;
+            }
 
-				var cropX = (int)(CropRect.X * w);
-				var cropY = (int)(CropRect.Y * h);
-				var cropW = (int)(CropRect.Width * w);
-				var cropH = (int)(CropRect.Height * h);
+            using (var image = await CrossImageEdit.Current.CreateImageAsync(_orgImage)) {
+                var w = image.Width;
+                var h = image.Height;
 
-				var resizeW = 320;
+                var cropX = (int)(CropRect.X * w);
+                var cropY = (int)(CropRect.Y * h);
+                var cropW = (int)(CropRect.Width * w);
+                var cropH = (int)(CropRect.Height * h);
 
-				var croped = await Task.Run(
-					() => image.Crop(cropX, cropY, cropW, cropH)
-						.Rotate(degree)
-						.Resize(resizeW, 0)
-						.ToJpeg()
-				);
+                var resizeW = 320;
 
-				ResultImage = ImageSource.FromStream(() => new MemoryStream(croped));
-				ResultVisible = true;
+                var croped = await Task.Run(
+                    () => image.Crop(cropX, cropY, cropW, cropH)
+                        .Rotate(degree)
+                        .Resize(resizeW, 0)
+                        .ToJpeg()
+                );
 
-			}
+                ResultImage = ImageSource.FromStream(() => new MemoryStream(croped));
+                ResultVisible = true;
 
-		}
+            }
+
+        }
 
         public void OnNavigatedFrom(NavigationParameters parameters)
         {
@@ -151,8 +165,11 @@ namespace PanPinchSample.ViewModels
 
         public async void OnNavigatingTo(NavigationParameters parameters)
         {
-			var httpClient = new HttpClient();
+            var httpClient = new HttpClient();
             _orgImage = await httpClient.GetByteArrayAsync("http://free-photos-ls02.gatag.net/images/lgf01a201309171000.jpg");
+
+            //var image = _imageEdit.CreateImage(_orgImage);
+            //image.Resize(100,0);
 
             ImageSrc = ImageSource.FromStream(() => new MemoryStream(_orgImage));
             BackImage = ImageSource.FromStream(() => new MemoryStream(_orgImage));

@@ -1,5 +1,7 @@
 using Foundation;
 using Microsoft.Practices.Unity;
+using Plugin.ImageEdit;
+using Plugin.ImageEdit.Abstractions;
 using Prism.Unity;
 using UIKit;
 
@@ -34,7 +36,7 @@ namespace PanPinchSample.iOS
     {
         public void RegisterTypes(IUnityContainer container)
         {
-			//container.RegisterType<IImageEditor,ImageEditor>();
+			container.RegisterType<IImageEdit,ImageEdit>();
         }
     }
 }

@@ -44,7 +44,7 @@
 	</ContentPage.Resources>
 	
 	<ContentPage.ToolbarItems>
-  		<ToolbarItem  Priority="1" Command="{Binding AlterThemeCommand}" Text="" />
+  		<ToolbarItem  Priority="1" Command="{Binding RotateCommand}" Text="@" />
   	</ContentPage.ToolbarItems>
 	
 	<AbsoluteLayout Margin="10">
